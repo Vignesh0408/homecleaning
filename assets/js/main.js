@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const quoteModalForm = document.getElementById('quoteModalForm');
   const quoteModalError = document.getElementById('quoteModalError');
   const openQuoteModalBtns = document.querySelectorAll('.open-quote-modal-btn');
-  const WHATSAPP_PHONE_NUMBER = '15125550199';
+  const WHATSAPP_PHONE_NUMBER = '19545550199';
 
   function openQuoteModal(selectedService) {
     if (!quoteModalOverlay) return;
@@ -660,7 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
       meta: '1-2 Specialists • Avg 2.5 – 3.5 hrs',
       price: '$160 – $280',
       priceSub: '/ turnover visit',
-      desc: 'Rapid high-detail turnover cleaning specifically engineered for Austin short-term rentals and Airbnb hosts needing fast guest turnarounds and immaculate reviews.',
+      desc: 'Rapid high-detail turnover cleaning specifically engineered for South Florida short-term rentals and Airbnb hosts needing fast guest turnarounds and immaculate reviews.',
       checklistTitle: 'Airbnb Turnover Inclusions:',
       checklist: [
         'Linen change, bed stripping & fresh towel arrangement',

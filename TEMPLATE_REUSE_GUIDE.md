@@ -53,9 +53,9 @@ Open `index.html` and replace the client details:
 | :--- | :--- | :--- |
 | **Business Name** | `CleanSpark Home Care` | Swappable client name / agency |
 | **Client Name** | `Sarah Jenkins` | Headshot alt tag & bio |
-| **Phone Number** | `(512) 555-0199` | Update `tel:+15125550199` links & display |
-| **Text SMS** | `sms:+15125550199` | Replaces WhatsApp for U.S. market |
-| **City / State** | `Austin, TX` | Update city & ZIP codes in `#area` & JSON-LD |
+| **Phone Number** | `(954) 555-0199` | Update `tel:+19545550199` links & display |
+| **Text SMS** | `sms:+19545550199` | Replaces WhatsApp for U.S. market |
+| **City / State** | `Hollywood, FL (33020)` | Update city & ZIP codes in `#area` & JSON-LD |
 | **Trust Badge** | `Insured, Bonded & Background-Checked` | Standard U.S. trust copy |
 | **Pricing ($ USD)** | `$120`, `$220`, `$290` | Transparent starting rates |
 
