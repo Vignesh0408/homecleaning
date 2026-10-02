@@ -369,24 +369,61 @@ document.addEventListener('DOMContentLoaded', () => {
   const openQuoteModalBtns = document.querySelectorAll('.open-quote-modal-btn');
   const WHATSAPP_PHONE_NUMBER = '19545550199';
 
+  // Custom Select Dropdown logic
+  const customServiceSelect = document.getElementById('customServiceSelect');
+  const serviceSelectTrigger = document.getElementById('serviceSelectTrigger');
+  const serviceSelectValue = document.getElementById('serviceSelectValue');
+  const quoteModalServiceHidden = document.getElementById('quoteModalService');
+  const serviceOptions = document.querySelectorAll('.custom-select-option');
+
+  if (serviceSelectTrigger && customServiceSelect) {
+    serviceSelectTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = customServiceSelect.classList.toggle('open');
+      serviceSelectTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    serviceOptions.forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const val = opt.getAttribute('data-value');
+        if (quoteModalServiceHidden) quoteModalServiceHidden.value = val;
+        if (serviceSelectValue) serviceSelectValue.textContent = val;
+
+        serviceOptions.forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+
+        customServiceSelect.classList.remove('open');
+        serviceSelectTrigger.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!customServiceSelect.contains(e.target)) {
+        customServiceSelect.classList.remove('open');
+        serviceSelectTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
   function openQuoteModal(selectedService) {
     if (!quoteModalOverlay) return;
     quoteModalOverlay.classList.add('active');
     quoteModalOverlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
 
-    if (selectedService) {
-      const select = document.getElementById('quoteModalService');
-      if (select) {
-        for (let i = 0; i < select.options.length; i++) {
-          const optVal = select.options[i].value.toLowerCase();
-          const targetVal = selectedService.toLowerCase();
-          if (optVal.includes(targetVal) || targetVal.includes(optVal)) {
-            select.selectedIndex = i;
-            break;
-          }
+    if (selectedService && serviceOptions.length > 0) {
+      serviceOptions.forEach(opt => {
+        const optVal = opt.getAttribute('data-value').toLowerCase();
+        const targetVal = selectedService.toLowerCase();
+        if (optVal.includes(targetVal) || targetVal.includes(optVal)) {
+          const val = opt.getAttribute('data-value');
+          if (quoteModalServiceHidden) quoteModalServiceHidden.value = val;
+          if (serviceSelectValue) serviceSelectValue.textContent = val;
+          serviceOptions.forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
         }
-      }
+      });
     }
 
     // Auto focus name input
@@ -467,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = '⏳ Submitting Quote Request...';
+        submitBtn.innerHTML = '<span>Submitting Quote Request...</span>';
       }
 
       try {
@@ -506,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit Quote Request';
+          submitBtn.innerHTML = `<span>Get My Guaranteed Quote</span><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>`;
         }
       }
     });
@@ -516,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
      13. HERO INSTANT PRICE ESTIMATOR CALCULATOR
      ========================================================================== */
   const calcBedsBtns = document.querySelectorAll('#calcBedsGroup .calc-pill-btn');
-  const calcTypeBtns = document.querySelectorAll('#calcTypeGroup .calc-pill-btn');
+  const calcTypeCards = document.querySelectorAll('#calcTypeGroup .calc-service-card');
   const calcPriceDisplay = document.getElementById('calcPriceDisplay');
   const calcLockRateBtn = document.getElementById('calcLockRateBtn');
 
@@ -524,21 +561,36 @@ document.addEventListener('DOMContentLoaded', () => {
     '1-standard': '$120 – $160',
     '1-deep': '$160 – $200',
     '1-moveout': '$190 – $240',
+    '1-airbnb': '$140 – $180',
+    '1-renovation': '$220 – $280',
+    '1-kitchen': '$100 – $140',
     '2-standard': '$140 – $180',
     '2-deep': '$220 – $270',
     '2-moveout': '$260 – $320',
+    '2-airbnb': '$160 – $200',
+    '2-renovation': '$260 – $340',
+    '2-kitchen': '$120 – $180',
     '3-standard': '$180 – $230',
     '3-deep': '$290 – $360',
     '3-moveout': '$340 – $420',
+    '3-airbnb': '$190 – $240',
+    '3-renovation': '$320 – $420',
+    '3-kitchen': '$160 – $220',
     '4-standard': '$230 – $300',
     '4-deep': '$360 – $450',
-    '4-moveout': '$420 – $550'
+    '4-moveout': '$420 – $550',
+    '4-airbnb': '$240 – $320',
+    '4-renovation': '$400 – $520',
+    '4-kitchen': '$200 – $280'
   };
 
   const serviceNameMatrix = {
     'standard': 'Standard Recurring Cleaning',
     'deep': 'Deep Cleaning Package',
-    'moveout': 'Move-In / Move-Out Turnover'
+    'moveout': 'Move-In / Move-Out Turnover',
+    'airbnb': 'Airbnb & Short-Term Staging',
+    'renovation': 'Post-Construction Dust Removal',
+    'kitchen': 'Kitchen & Appliance Deep Detailing'
   };
 
   const homeSizeMatrix = {
@@ -559,6 +611,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (calcLockRateBtn && serviceNameMatrix[activeType]) {
       calcLockRateBtn.setAttribute('data-service', serviceNameMatrix[activeType]);
     }
+
+    // Update service description
+    const serviceDesc = document.getElementById('calcServiceDesc');
+    if (serviceDesc) {
+      const descriptions = {
+        'standard': 'Routine maintenance for consistently fresh, disinfected, and guest-ready homes.',
+        'deep': 'Top-to-bottom room-by-room scrub targeting built-up grime and limescale.',
+        'moveout': 'Full empty-home deep sanitization for tenants and property managers.',
+        'airbnb': 'Rapid high-detail turnover for short-term rentals needing fast guest turnarounds.',
+        'renovation': 'Specialized extraction of drywall dust and debris after construction work.',
+        'kitchen': 'Targeted deep scrub focusing on heavy kitchen grease and appliance restoration.'
+      };
+      serviceDesc.textContent = descriptions[activeType] || descriptions['deep'];
+    }
   }
 
   calcBedsBtns.forEach(btn => {
@@ -570,11 +636,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  calcTypeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      calcTypeBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeType = btn.getAttribute('data-type') || 'deep';
+  calcTypeCards.forEach(card => {
+    card.addEventListener('click', () => {
+      calcTypeCards.forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      activeType = card.getAttribute('data-type') || 'deep';
       updateCalculator();
     });
   });
@@ -779,26 +845,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const baHandle = document.getElementById('baHandle');
   const baBeforeImg = document.getElementById('baBeforeImg');
   const baAfterImg = document.getElementById('baAfterImg');
+  const baPillBefore = document.getElementById('baPillBefore');
+  const baPillAfter = document.getElementById('baPillAfter');
   const baPresetBtns = document.querySelectorAll('.ba-preset-btn');
 
   const baPresets = {
     'kitchen': {
-      before: 'assets/images/kitchen-before.jpg',
-      after: 'assets/images/kitchen-after.jpg'
+      before: 'assets/images/real/before-1.jpg',
+      after: 'assets/images/real/after-1.jpg',
+      details: '3-Bed Home, Hollywood Lakes, FL • Deep Clean • 4 Hours'
     },
     'bathroom': {
-      before: 'assets/images/bathroom-before.jpg',
-      after: 'assets/images/bathroom-after.jpg'
+      before: 'assets/images/real/before-2.jpg',
+      after: 'assets/images/real/after-2.jpg',
+      details: 'Bathroom Tile & Soap Scum Scrub • Hollywood Beach Condo • 2.5 Hours'
     },
     'stovetop': {
-      before: 'assets/images/stovetop-before.jpg',
-      after: 'assets/images/stovetop-after.jpg',
-      fallbackBefore: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1400&q=80',
-      fallbackAfter: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1400&q=80'
+      before: 'assets/images/real/before-3.jpg',
+      after: 'assets/images/real/after-3.jpg',
+      details: 'Grease Restoration & Detailing • Hollywood, FL • 1.5 Hours'
     },
     'living': {
-      before: 'assets/images/living-before.jpg',
-      after: 'assets/images/living-after.jpg'
+      before: 'assets/images/real/before-4.jpg',
+      after: 'assets/images/real/after-4.jpg',
+      details: 'Sand Extraction & Dusting • Downtown Hollywood, FL • 3 Hours'
     }
   };
 
@@ -811,49 +881,94 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  window.addEventListener('resize', updateBeforeImgWidth, { passive: true });
+  if (window.ResizeObserver && baContainer) {
+    const ro = new ResizeObserver(() => {
+      updateBeforeImgWidth();
+    });
+    ro.observe(baContainer);
+  } else {
+    window.addEventListener('resize', updateBeforeImgWidth, { passive: true });
+  }
   updateBeforeImgWidth();
 
-  function setSliderPosition(x) {
-    if (!baContainer || !baBeforeLayer || !baHandle) return;
-    const rect = baContainer.getBoundingClientRect();
-    let position = ((x - rect.left) / rect.width) * 100;
-    position = Math.max(0, Math.min(100, position));
+  if (baBeforeImg) {
+    baBeforeImg.addEventListener('load', updateBeforeImgWidth);
+  }
 
-    baBeforeLayer.style.width = position + '%';
-    baHandle.style.left = position + '%';
+  function setSliderPositionPct(positionPct, animate = false) {
+    if (!baContainer || !baBeforeLayer || !baHandle) return;
+    const clampedPct = Math.max(0, Math.min(100, positionPct));
+
+    if (animate) {
+      baBeforeLayer.style.transition = 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+      baHandle.style.transition = 'left 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+    } else {
+      baBeforeLayer.style.transition = 'none';
+      baHandle.style.transition = 'none';
+    }
+
+    baBeforeLayer.style.width = clampedPct + '%';
+    baHandle.style.left = clampedPct + '%';
+
+    // Fade out BEFORE pill smoothly when handle approaches left edge (2% to 20%)
+    if (baPillBefore) {
+      const beforeOpacity = Math.min(1, Math.max(0, (clampedPct - 2) / 18));
+      baPillBefore.style.opacity = beforeOpacity;
+    }
+
+    // Fade out AFTER pill smoothly when handle approaches right edge (80% to 98%)
+    if (baPillAfter) {
+      const afterOpacity = Math.min(1, Math.max(0, (98 - clampedPct) / 18));
+      baPillAfter.style.opacity = afterOpacity;
+    }
+  }
+
+  function setSliderPosition(x, animate = false) {
+    if (!baContainer) return;
+    const rect = baContainer.getBoundingClientRect();
+    const positionPct = ((x - rect.left) / rect.width) * 100;
+    setSliderPositionPct(positionPct, animate);
   }
 
   if (baContainer) {
-    baContainer.addEventListener('mousedown', (e) => {
+    const handleStart = (clientX) => {
       isDraggingBA = true;
-      setSliderPosition(e.clientX);
+      setSliderPosition(clientX, false);
+    };
+
+    const handleEnd = () => {
+      if (isDraggingBA) {
+        isDraggingBA = false;
+        setSliderPositionPct(50, true);
+      }
+    };
+
+    baContainer.addEventListener('mousedown', (e) => {
+      handleStart(e.clientX);
     });
 
     window.addEventListener('mousemove', (e) => {
       if (!isDraggingBA) return;
-      setSliderPosition(e.clientX);
+      setSliderPosition(e.clientX, false);
     });
 
-    window.addEventListener('mouseup', () => {
-      isDraggingBA = false;
-    });
+    window.addEventListener('mouseup', handleEnd);
+    window.addEventListener('mouseleave', handleEnd);
 
     // Touch support
     baContainer.addEventListener('touchstart', (e) => {
-      isDraggingBA = true;
-      if (e.touches[0]) setSliderPosition(e.touches[0].clientX);
+      if (e.touches[0]) handleStart(e.touches[0].clientX);
     }, { passive: true });
 
     window.addEventListener('touchmove', (e) => {
       if (!isDraggingBA) return;
-      if (e.touches[0]) setSliderPosition(e.touches[0].clientX);
+      if (e.touches[0]) setSliderPosition(e.touches[0].clientX, false);
     }, { passive: true });
 
-    window.addEventListener('touchend', () => {
-      isDraggingBA = false;
-    });
+    window.addEventListener('touchend', handleEnd);
   }
+
+  const baJobDetailsText = document.getElementById('baJobDetailsText');
 
   baPresetBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -862,14 +977,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const presetKey = btn.getAttribute('data-preset') || 'kitchen';
       if (baPresets[presetKey] && baBeforeImg && baAfterImg) {
         const preset = baPresets[presetKey];
-        baBeforeImg.onerror = () => {
-          if (preset.fallbackBefore) baBeforeImg.src = preset.fallbackBefore;
-        };
-        baAfterImg.onerror = () => {
-          if (preset.fallbackAfter) baAfterImg.src = preset.fallbackAfter;
-        };
         baBeforeImg.src = preset.before;
         baAfterImg.src = preset.after;
+        if (baJobDetailsText && preset.details) {
+          baJobDetailsText.textContent = preset.details;
+        }
+        updateBeforeImgWidth();
+        setSliderPositionPct(50, true);
       }
     });
   });
@@ -902,4 +1016,246 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('scroll', checkVisibilityOnScroll, { passive: true });
   checkVisibilityOnScroll();
 });
+
+/* ==========================================================================
+   17. GLOBAL FAQ ACCORDION CONTROLLER
+   ========================================================================== */
+window.toggleFaq = function(button) {
+  if (!button) return;
+  const item = button.closest('.faq-item');
+  if (!item) return;
+  const answer = item.querySelector('.faq-answer');
+  if (!answer) return;
+  const isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+  if (isExpanded) {
+    item.classList.remove('active');
+    button.setAttribute('aria-expanded', 'false');
+    answer.style.maxHeight = null;
+  } else {
+    item.classList.add('active');
+    button.setAttribute('aria-expanded', 'true');
+    answer.style.maxHeight = answer.scrollHeight + "px";
+  }
+};
+
+function initFaqAccordion() {
+  document.querySelectorAll('.faq-item').forEach((item, index) => {
+    const btn = item.querySelector('.faq-trigger');
+    const ans = item.querySelector('.faq-answer');
+    if (!btn || !ans) return;
+
+    if (item.classList.contains('active') || index < 2) {
+      item.classList.add('active');
+      btn.setAttribute('aria-expanded', 'true');
+      ans.style.maxHeight = ans.scrollHeight + "px";
+    } else {
+      item.classList.remove('active');
+      btn.setAttribute('aria-expanded', 'false');
+      ans.style.maxHeight = null;
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initFaqAccordion);
+} else {
+  initFaqAccordion();
+}
+window.addEventListener('resize', initFaqAccordion, { passive: true });
+
+/* ==========================================================================
+   18. SMOOTH ESTIMATOR FOCUS CONTROLLER
+   ========================================================================== */
+window.scrollToEstimator = function(event) {
+  if (event) event.preventDefault();
+  const estimatorCard = document.getElementById('estimator-card');
+  if (estimatorCard) {
+    estimatorCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    estimatorCard.classList.add('calc-card-focused');
+    setTimeout(() => {
+      estimatorCard.classList.remove('calc-card-focused');
+    }, 1200);
+  }
+};
+
+/* ==========================================================================
+   19. HONEST & REPLACABLE GOOGLE REVIEWS SYSTEM (CONFIG DRIVEN)
+   TODO: Replace sample reviews with real Google reviews before launch (FTC rules prohibit fake reviews).
+   ========================================================================== */
+const defaultReviewsConfig = {
+  config: {
+    averageRating: "5.0",
+    totalReviews: "120+",
+    googleReviewsUrl: "https://maps.google.com",
+    isDemoMode: true
+  },
+  reviews: [
+    {
+      id: 1,
+      name: "Sarah M.",
+      neighborhood: "Hollywood Lakes (33020)",
+      date: "2 weeks ago",
+      rating: 5,
+      text: "Sarah has been cleaning our home in Hollywood Lakes for over 2 years. She is exceptionally detailed, always punctual, and we feel 100% comfortable trusting her with our home.",
+      source: "Google Reviews",
+      verified: true
+    },
+    {
+      id: 2,
+      name: "Michael R.",
+      neighborhood: "Downtown Hollywood (33020)",
+      date: "1 month ago",
+      rating: 5,
+      text: "We booked Sarah for a comprehensive kitchen deep clean before moving into our Downtown Hollywood home. Her attention to detail on appliances, grout lines, and granite counters was remarkable. Highly recommended!",
+      source: "Google Reviews",
+      verified: true
+    },
+    {
+      id: 3,
+      name: "Jennifer L.",
+      neighborhood: "Hollywood Beach",
+      date: "3 weeks ago",
+      rating: 5,
+      text: "Honest, hardworking, and extremely respectful. Sarah brings her own professional eco-friendly equipment and leaves our Hollywood Beach condo bathrooms and kitchen sparkling clean every single visit.",
+      source: "Google Reviews",
+      verified: true
+    }
+  ]
+};
+
+async function initReviewsSystem() {
+  let data = defaultReviewsConfig;
+
+  try {
+    const res = await fetch('reviews.json');
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.config && json.reviews) {
+        data = json;
+      }
+    }
+  } catch (err) {
+    // Fallback to defaultReviewsConfig if fetch fails
+  }
+
+  const { config, reviews } = data;
+
+  // 1. Update Hero Trust Rating Text
+  const heroTrustRatingText = document.getElementById('heroTrustRatingText');
+  if (heroTrustRatingText && config) {
+    heroTrustRatingText.innerHTML = `<strong>${config.averageRating}</strong> · ${config.totalReviews} Verified Google Reviews`;
+  }
+
+  // 2. Update Reviews Section Header Score & Subtext
+  const googleHeaderRatingScore = document.getElementById('googleHeaderRatingScore');
+  if (googleHeaderRatingScore && config) {
+    googleHeaderRatingScore.textContent = config.averageRating;
+  }
+
+  const googleRatingSubtext = document.getElementById('googleRatingSubtext');
+  if (googleRatingSubtext && config) {
+    googleRatingSubtext.textContent = `${config.averageRating}/5 Rating based on ${config.totalReviews} verified Google Reviews • Hollywood, FL (33020)`;
+  }
+
+  // 3. Update Google Review Links
+  const googleViewAllLink = document.getElementById('googleViewAllLink');
+  if (googleViewAllLink && config.googleReviewsUrl) {
+    googleViewAllLink.href = config.googleReviewsUrl;
+  }
+
+  const googleWriteReviewBtn = document.getElementById('googleWriteReviewBtn');
+  if (googleWriteReviewBtn && config.googleReviewsUrl) {
+    googleWriteReviewBtn.href = config.googleReviewsUrl;
+  }
+
+  // 4. Demo Mode Badge Visibility
+  const demoModeBadge = document.getElementById('demoModeBadge');
+  if (demoModeBadge && config) {
+    if (config.isDemoMode) {
+      demoModeBadge.style.display = 'inline-flex';
+    } else {
+      demoModeBadge.style.display = 'none';
+    }
+  }
+
+  // 5. Render Reviews Grid while preserving card design
+  const testimonialsGrid = document.getElementById('testimonialsGrid');
+  if (testimonialsGrid && Array.isArray(reviews)) {
+    const starSvg = `<svg viewBox="0 0 20 20" fill="#F59E0B" width="16" height="16"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>`;
+    const googleMiniIcon = `<svg class="google-mini-icon" width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>`;
+
+    testimonialsGrid.innerHTML = reviews.map(rev => {
+      const initialLetter = rev.name ? rev.name.charAt(0).toUpperCase() : 'U';
+      const verifiedBadge = rev.verified === true ? ` <span class="verified-badge">✓ Verified Customer</span>` : '';
+      const ratingVal = Math.min(5, Math.max(1, parseInt(rev.rating, 10) || 5));
+      const stars = Array(ratingVal).fill(starSvg).join('');
+      const metaDate = rev.neighborhood ? `${rev.date} • ${rev.neighborhood}` : rev.date;
+
+      return `
+        <div class="google-review-card">
+          <div class="review-card-top">
+            <div class="reviewer-avatar">${initialLetter}</div>
+            <div class="reviewer-meta">
+              <div class="reviewer-name">${rev.name}${verifiedBadge}</div>
+              <div class="review-date">${metaDate}</div>
+            </div>
+            ${googleMiniIcon}
+          </div>
+          <div class="star-rating">
+            ${stars}
+          </div>
+          <p class="quote-text">
+            "${rev.text}"
+          </p>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initReviewsSystem);
+} else {
+  initReviewsSystem();
+}
+
+/* ==========================================================================
+   20. MOBILE BOTTOM BAR VISIBILITY CONTROLLER
+   ========================================================================== */
+function initMobileBottomBarObserver() {
+  const mobileBar = document.getElementById('mobileBottomBar');
+  const targetForm = document.getElementById('clientContactForm') || document.getElementById('contact');
+  const targetEstimator = document.getElementById('estimator-card');
+
+  if (!mobileBar) return;
+
+  const targets = [targetForm, targetEstimator].filter(Boolean);
+  if (targets.length === 0) return;
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      const isAnyTargetVisible = entries.some(entry => entry.isIntersecting);
+      if (isAnyTargetVisible) {
+        mobileBar.style.transform = 'translateY(100%)';
+        mobileBar.style.opacity = '0';
+        mobileBar.style.pointerEvents = 'none';
+      } else {
+        mobileBar.style.transform = 'translateY(0)';
+        mobileBar.style.opacity = '1';
+        mobileBar.style.pointerEvents = 'auto';
+      }
+    }, { threshold: 0.1 });
+
+    targets.forEach(t => observer.observe(t));
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMobileBottomBarObserver);
+} else {
+  initMobileBottomBarObserver();
+}
+
+
 
